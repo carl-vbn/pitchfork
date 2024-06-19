@@ -13,9 +13,22 @@
 #define BUFSIZE 4096
 
 int main(int argc, char** argv) {
-    FILE *config_file = fopen("pitchfork-testing.yml", "r");
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <config-file>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    FILE *config_file = fopen(argv[1], "r");
+    if (config_file == NULL) {
+        fprintf(stderr, "%s: No such file or directory\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
     config_t config;
-    load_config(config_file, &config);
+    if (load_config(config_file, &config) < 0) {
+        fprintf(stderr, "Failed to load config\n");
+        return EXIT_FAILURE;
+    }
     fclose(config_file);
 
     child_process *tasks = malloc(config.ntines * sizeof(child_process));
@@ -70,9 +83,11 @@ int main(int argc, char** argv) {
             }
         } else {
             perror("select");
-            return 1;
+            return EXIT_FAILURE;
         }
     }
 
     free(tasks);
+
+    return EXIT_SUCCESS;
 }

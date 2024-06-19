@@ -30,7 +30,3 @@ clean:
 
 .PHONY: all
 all: clean $(TARGET)
-
-.PHONY: run
-run: $(TARGET)
-	./$(TARGET)
