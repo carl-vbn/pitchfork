@@ -1,0 +1,48 @@
+# Example pitchfork configuration for a Minecraft network
+
+control-socket:
+  enabled: true
+  path: '/run/pitchfork_sockets/network'
+
+logging:
+  info: false
+  warnings: true
+  errors: true
+  colored: true
+
+tines:
+  proxy:
+    description: "Velocity Proxy"
+    working-directory: "~/minecraft/velocity"
+    run: "java -jar velocity.jar"
+    
+  survival-server:
+    description: "Fabric server for the survival world"
+    working-directory: "~/minecraft/survival"
+    pre: "rm -rf data/*"
+    run: "java -jar fabric.jar"
+    post: "cp -r world/* backup/*"
+    io-socket:
+      path: '/run/pitchfork_sockets/fabric-survival'
+      streams: ['stdout', 'stderr']
+    restart-on-exit:
+      enabled: true
+      nonzero-only: true
+      delay: 5
+      max-attempts: 3
+
+  creative-server:
+    description: "Fabric server for the creative world"
+    working-directory: "~/minecraft/creative"
+    pre: "rm -rf data/*"
+    run: "java -jar fabric.jar"
+    post: "cp -r world/* backup/*"
+    io-socket:
+      path: '/run/pitchfork_sockets/fabric-creative'
+      streams: ['stdout', 'stderr']
+    restart-on-exit:
+      enabled: true
+      nonzero-only: true
+      delay: 5
+      max-attempts: 3
+  

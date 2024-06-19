@@ -1,0 +1,9 @@
+# Minimal configuration file for testing purposes
+
+tines:
+  echotest:
+    working-directory: '.'
+    run: 'echo Hello World!'
+  pythontest:
+    working-directory: '.'
+    run: 'python3 test.py'

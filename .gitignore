@@ -1,0 +1,6 @@
+# Compilation output
+obj/
+pitchfork
+
+# IDE directories
+.vscode/
