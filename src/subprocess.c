@@ -21,6 +21,7 @@ int start_child(const char* executable, char* const* args, char* const* envp, ch
         perror("fork");
         return -1;
     } else if (child_pid == 0) { // Child code
+        // Setup pipes
         close(stdin_pipe[1]);
         close(stdout_pipe[0]);
         close(stderr_pipe[0]);
@@ -33,12 +34,16 @@ int start_child(const char* executable, char* const* args, char* const* envp, ch
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
 
-        // TODO Setuid
+        // TODO setuid
+        // TODO setenv
 
+        // Prevent block buffering
         setenv("_STDBUF_O", "L", 0);
         setenv("_STDBUF_E", "L", 0);
         setenv("LD_PRELOAD", "/usr/libexec/coreutils/libstdbuf.so", 0);
         setenv("PYTHONUNBUFFERED", "1", 1);
+
+        // Run
         execvp(executable, args);
 
         return 0;
