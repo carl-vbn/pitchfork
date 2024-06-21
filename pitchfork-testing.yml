@@ -7,3 +7,6 @@ tines:
   pythontest:
     working-directory: '.'
     run: 'python3 test.py'
+  pwd:
+    working-directory: '~/'
+    run: 'pwd'

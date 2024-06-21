@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-int start_child(const char* executable, char* const* args, char* const* envp, child_process* child_info) {
+#include "cmdparse.h"
+
+int start_tine_proc(tine_t *tine, child_process* child_info) {
     int stdin_pipe[2];
     int stdout_pipe[2];
     int stderr_pipe[2];
@@ -34,6 +36,8 @@ int start_child(const char* executable, char* const* args, char* const* envp, ch
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
 
+        chdir(tine->wdir);
+
         // TODO setuid
         // TODO setenv
 
@@ -44,8 +48,9 @@ int start_child(const char* executable, char* const* args, char* const* envp, ch
         setenv("PYTHONUNBUFFERED", "1", 1);
 
         // Run
-        execvp(executable, args);
-
+        char **child_args = split_string_into_args(tine->run_cmd, NULL);
+        execvp(child_args[0], child_args);
+        // No need to free child_args because of execvp
         return 0;
     } else { // Parent code
         close(stdin_pipe[0]);
@@ -62,4 +67,13 @@ int start_child(const char* executable, char* const* args, char* const* envp, ch
 
         return child_pid;
     }
+}
+
+int any_running(child_process *procs, size_t nprocs) {
+    for (size_t i = 0; i<nprocs; i++) {
+        if (procs[i].running) {
+            return 1;
+        }
+    }
+    return 0;
 }

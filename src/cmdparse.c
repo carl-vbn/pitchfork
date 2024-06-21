@@ -34,7 +34,7 @@ char **split_string_into_args(const char *str, size_t *num_args) {
     }
     args[index] = NULL; // Null-terminator
 
-    *num_args = count;
+    if (num_args) *num_args = count;
     free(str_copy);
     return args;
 }

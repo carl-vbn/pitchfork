@@ -31,23 +31,20 @@ int main(int argc, char** argv) {
     }
     fclose(config_file);
 
-    child_process *tasks = malloc(config.ntines * sizeof(child_process));
+    child_process *tine_procs = malloc(config.ntines * sizeof(child_process));
     for (size_t i = 0; i<config.ntines; i++) {
-        size_t nargs;
-        char **child_args = split_string_into_args(config.tines[i].run_cmd, &nargs);
-        start_child(child_args[0], child_args, NULL, tasks + i);
-        free_args(child_args, nargs);
+        start_tine_proc(&config.tines[i], tine_procs+i);
     }
 
     delete_config(&config);
 
     fd_set fdset;
 
-    while (tasks[0].running || tasks[1].running) {
+    while (any_running(tine_procs, config.ntines)) {
         FD_ZERO(&fdset);
 
-        for (int i = 0; i<2; i++) {
-            child_process* task = tasks + i;
+        for (int i = 0; i<config.ntines; i++) {
+            child_process* task = tine_procs + i;
             FD_SET(task->stdout_fd, &fdset);
             FD_SET(task->stderr_fd, &fdset);
 
@@ -64,8 +61,8 @@ int main(int argc, char** argv) {
             int read_bytes;
             char* buf[BUFSIZE];
 
-            for (int i = 0; i<2; i++) {
-                child_process* task = tasks + i;
+            for (int i = 0; i<config.ntines; i++) {
+                child_process* task = tine_procs + i;
 
                 if (FD_ISSET(task->stdout_fd, &fdset)) {
                     while ((read_bytes = read(task->stdout_fd, buf, sizeof(buf))) > 0) {
@@ -87,7 +84,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    free(tasks);
+    free(tine_procs);
 
     return EXIT_SUCCESS;
 }
