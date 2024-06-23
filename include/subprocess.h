@@ -13,7 +13,7 @@ typedef struct child_process {
     int stderr_fd;
 } child_process;
 
-int start_tine_proc(tine_t *tine, child_process* child_info);
+int start_tine_proc(tine_t *tine, child_process *child_info);
 int any_running(child_process *procs, size_t nprocs);
 
 #endif

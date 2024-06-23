@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 typedef struct tine_s {
-    char* name;
-    char* wdir;
-    char* run_cmd;
+    char *name;
+    char *wdir;
+    char *run_cmd;
 } tine_t;
 
 typedef struct config_s {

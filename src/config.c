@@ -20,7 +20,7 @@ int parse_tine(tine_t *tine, yaml_parser_t *parser) {
         yaml_event_delete(&event);
         return 0;
     } else if (event.type == YAML_SCALAR_EVENT) {
-        char* tine_name = (char*)event.data.scalar.value;
+        char *tine_name = (char*)event.data.scalar.value;
         tine->name = strdup(tine_name);
     }
 

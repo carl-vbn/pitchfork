@@ -12,7 +12,7 @@
 
 #define BUFSIZE 4096
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <config-file>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
         FD_ZERO(&fdset);
 
         for (int i = 0; i<config.ntines; i++) {
-            child_process* task = tine_procs + i;
+            child_process *task = tine_procs + i;
             FD_SET(task->stdout_fd, &fdset);
             FD_SET(task->stderr_fd, &fdset);
 
@@ -59,10 +59,10 @@ int main(int argc, char** argv) {
         
         if (select(FD_SETSIZE, &fdset, NULL, NULL, NULL) != -1) {
             int read_bytes;
-            char* buf[BUFSIZE];
+            char *buf[BUFSIZE];
 
             for (int i = 0; i<config.ntines; i++) {
-                child_process* task = tine_procs + i;
+                child_process *task = tine_procs + i;
 
                 if (FD_ISSET(task->stdout_fd, &fdset)) {
                     while ((read_bytes = read(task->stdout_fd, buf, sizeof(buf))) > 0) {

@@ -6,7 +6,7 @@ INCLUDE_PATH := include
 
 CXXFLAGS := -g -Wall -I$(INCLUDE_PATH)
 LDFLAGS :=
-LDLIBS := -lglfw -lyaml
+LDLIBS := -lyaml
 
 SRC := $(foreach x, $(SRC_PATH), $(wildcard $(addprefix $(x)/*,.c*)))
 OBJ := $(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(notdir $(basename $(SRC)))))
@@ -18,7 +18,7 @@ $(TARGET): $(OBJ)
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c* $(INCLUDE_PATH)/%.h
 	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
-
+ 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c*
 	@mkdir -p obj
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

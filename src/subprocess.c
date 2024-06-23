@@ -7,7 +7,7 @@
 
 #include "cmdparse.h"
 
-int start_tine_proc(tine_t *tine, child_process* child_info) {
+int start_tine_proc(tine_t *tine, child_process *child_info) {
     int stdin_pipe[2];
     int stdout_pipe[2];
     int stderr_pipe[2];
@@ -36,7 +36,7 @@ int start_tine_proc(tine_t *tine, child_process* child_info) {
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
 
-        chdir(tine->wdir);
+        chdir(expand_tilde(tine->wdir));
 
         // TODO setuid
         // TODO setenv
