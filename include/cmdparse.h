@@ -1,5 +1,5 @@
-#ifndef CMDPARSE_H
-#define CMDPARSE_H
+#ifndef _CMDPARSE_H
+#define _CMDPARSE_H
 
 #include <stddef.h>
 

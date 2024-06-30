@@ -1,5 +1,9 @@
 # Minimal configuration file for testing purposes
 
+control-socket:
+  enabled: true
+  path: './ctrlsock'
+
 tines:
   echotest:
     working-directory: '.'

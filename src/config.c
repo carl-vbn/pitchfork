@@ -8,6 +8,13 @@
     return -1;\
 }
 
+void init_config(config_t *cfg) {
+    cfg->ctrlsock_enabled = 0;
+    cfg->ctrlsock_path = NULL;
+    cfg->ntines = 0;
+    cfg->tines = NULL;
+}
+
 // Returns 1 if a tine was successfully parsed
 //         0 if we have reached the end of the tines mapping
 //        -1 on error
@@ -116,6 +123,54 @@ int parse_tines(tine_t **tines, size_t *ntines, yaml_parser_t *parser) {
     return 0;
 }
 
+int parse_ctrlsock_settings(config_t *config, yaml_parser_t *parser) {
+    yaml_event_t event;
+
+    TRY_PARSE(parser, &event);
+
+    if (event.type != YAML_MAPPING_START_EVENT) {
+        fprintf(stderr, "parse_ctrlsock_settings: Bad config.\n");
+        return -1;
+    }
+
+    yaml_event_delete(&event);
+
+    char propname[64] = {0};
+    while (1) {
+        TRY_PARSE(parser, &event);
+
+        if (event.type == YAML_MAPPING_END_EVENT) {
+            yaml_event_delete(&event);
+            break;
+        }
+
+        if (event.type != YAML_SCALAR_EVENT) {
+            fprintf(stderr, "parse_ctrlsock_settings: Bad config.\n");
+            yaml_event_delete(&event);
+            return -1;
+        }
+
+        if (propname[0]) {
+            char *propval = (char*) event.data.scalar.value;
+            
+            if (strcmp(propname, "enabled") == 0) {
+                config->ctrlsock_enabled = strcmp(propval, "true") == 0;
+            } else if (strcmp(propname, "path") == 0) {
+                config->ctrlsock_path = strdup(propval);
+            }
+
+            propname[0] = '\0';
+        } else {
+            strncpy(propname, (char*) event.data.scalar.value, 64);
+            propname[63] = '\0';
+        }
+
+        yaml_event_delete(&event);
+    }
+
+    return 0;
+}
+
 int load_config(FILE *file, config_t *config) {
     yaml_parser_t parser;
 
@@ -134,6 +189,8 @@ int load_config(FILE *file, config_t *config) {
         if (event.type == YAML_SCALAR_EVENT) {
             if (strcmp((char*)event.data.scalar.value, "tines") == 0) {
                 parse_tines(&config->tines, &config->ntines, &parser);
+            } else if (strcmp((char*)event.data.scalar.value, "control-socket") == 0) {
+                parse_ctrlsock_settings(config, &parser);
             }
         }
         if (event.type != YAML_STREAM_END_EVENT) {
@@ -148,10 +205,13 @@ int load_config(FILE *file, config_t *config) {
 }
 
 void delete_config(config_t *config) {
+    free(config->ctrlsock_path);
+    
     for (size_t i = 0; i<config->ntines; i++) {
         free(config->tines[i].name);
         free(config->tines[i].wdir);
         free(config->tines[i].run_cmd);
     }
     free(config->tines);
+
 }
