@@ -66,7 +66,7 @@ int parse_tine(tine_t *tine, yaml_parser_t *parser) {
             
             if (strcmp(propname, "run") == 0) {
                 tine->run_cmd = strdup(propval);
-            } else if (strcmp(propname, "working-directory") == 0) {
+            } else if (strcmp(propname, "wd") == 0) {
                 tine->wdir = strdup(propval);
             }
 

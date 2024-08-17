@@ -42,10 +42,11 @@ int start_tine_proc(tine_t *tine, child_process *child_info) {
         // TODO setenv
 
         // Prevent block buffering
+        // TODO Make this configurable
         setenv("_STDBUF_O", "L", 0);
         setenv("_STDBUF_E", "L", 0);
         setenv("LD_PRELOAD", "/usr/libexec/coreutils/libstdbuf.so", 0);
-        setenv("PYTHONUNBUFFERED", "1", 1);
+        setenv("PYTHONUNBUFFERED", "1", 0);
 
         // Run
         char **child_args = split_string_into_args(tine->run_cmd, NULL);
