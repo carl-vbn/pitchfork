@@ -3,10 +3,17 @@
 
 #include <stdio.h>
 
+typedef struct env_s {
+    char *key;
+    char *value;
+} env_t;
+
 typedef struct tine_s {
     char *name;
     char *wdir;
     char *run_cmd;
+    env_t *env;
+    size_t nenv;
 } tine_t;
 
 typedef struct config_s {

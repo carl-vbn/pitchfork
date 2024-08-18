@@ -17,3 +17,5 @@ tines:
   printenv:
     wd: '~/'
     run: 'printenv'
+    env:
+      SOME_VAR: 'some_value'

@@ -39,7 +39,11 @@ int start_tine_proc(tine_t *tine, child_process *child_info) {
         chdir(expand_tilde(tine->wdir));
 
         // TODO setuid
-        // TODO setenv
+
+        // Set environment variables
+        for (size_t i = 0; i<tine->nenv; i++) {
+            setenv(tine->env[i].key, tine->env[i].value, 1);
+        }
 
         // Prevent block buffering
         // TODO Make this configurable

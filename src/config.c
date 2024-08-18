@@ -15,6 +15,61 @@ void init_config(config_t *cfg) {
     cfg->tines = NULL;
 }
 
+void init_tine(tine_t *tine) {
+    tine->name = NULL;
+    tine->wdir = NULL;
+    tine->run_cmd = NULL;
+    tine->env = NULL;
+    tine->nenv = 0;
+}
+
+int parse_env(tine_t *tine, yaml_parser_t *parser) {    
+    yaml_event_t event;
+
+    TRY_PARSE(parser, &event);
+
+    if (event.type != YAML_MAPPING_START_EVENT) {
+        fprintf(stderr, "parse_env: Bad config.\n");
+        yaml_event_delete(&event);
+        return -1;
+    }
+
+    yaml_event_delete(&event);
+    char propname[64] = {0};
+    while (1) {
+        TRY_PARSE(parser, &event);
+
+        if (event.type == YAML_MAPPING_END_EVENT) {
+            yaml_event_delete(&event);
+            break;
+        }
+
+        if (event.type != YAML_SCALAR_EVENT) {
+            fprintf(stderr, "parse_env: Bad config.\n");
+            yaml_event_delete(&event);
+            return -1;
+        }
+
+        if (propname[0]) {
+            char *propval = (char*) event.data.scalar.value;
+            
+            tine->env = realloc(tine->env, sizeof(env_t) * (tine->nenv + 1));
+            tine->env[tine->nenv].key = strdup(propname);
+            tine->env[tine->nenv].value = strdup(propval);
+            tine->nenv++;
+
+            propname[0] = '\0';
+        } else {
+            strncpy(propname, (char*) event.data.scalar.value, 64);
+            propname[63] = '\0';
+        }
+
+        yaml_event_delete(&event);
+    }
+
+    return 0;
+}
+
 // Returns 1 if a tine was successfully parsed
 //         0 if we have reached the end of the tines mapping
 //        -1 on error
@@ -43,8 +98,6 @@ int parse_tine(tine_t *tine, yaml_parser_t *parser) {
     yaml_event_delete(&event);
 
     // Parse provided properties
-    tine->run_cmd = NULL;
-    tine->wdir = NULL;
     char propname[64] = {0};
     while (1) {
         TRY_PARSE(parser, &event);
@@ -55,7 +108,6 @@ int parse_tine(tine_t *tine, yaml_parser_t *parser) {
         }
 
         if (event.type != YAML_SCALAR_EVENT) {
-            fprintf(stderr, "%d %d\n", event.type, YAML_MAPPING_END_EVENT);
             fprintf(stderr, "parse_tine: Bad config.\n");
             yaml_event_delete(&event);
             return -1;
@@ -68,12 +120,18 @@ int parse_tine(tine_t *tine, yaml_parser_t *parser) {
                 tine->run_cmd = strdup(propval);
             } else if (strcmp(propname, "wd") == 0) {
                 tine->wdir = strdup(propval);
+            } else if (strcmp(propname, "env") == 0) {
+                parse_env(tine, parser);
             }
 
             propname[0] = '\0';
         } else {
             strncpy(propname, (char*) event.data.scalar.value, 64);
             propname[63] = '\0';
+
+            if (strcmp(propname, "env") == 0) {
+                parse_env(tine, parser);
+            }
         }
 
         yaml_event_delete(&event);
@@ -101,13 +159,11 @@ int parse_tines(tine_t **tines, size_t *ntines, yaml_parser_t *parser) {
         if (*ntines >= capacity) {
             // Reallocate tine array with bigger capacity
             size_t new_capacity = capacity * 2;
-            tine_t *copy = malloc(sizeof(tine_t) * new_capacity);
-            memcpy(copy, *tines, sizeof(tine_t) * capacity);
-            free(*tines);
-            *tines = copy;
+            *tines = realloc(*tines, sizeof(tine_t) * new_capacity);
             capacity = new_capacity;
         }
         
+        init_tine(*tines + *ntines);
         int result = parse_tine(*tines + *ntines, parser);
         
         if (result == 0) {
@@ -211,6 +267,12 @@ void delete_config(config_t *config) {
         free(config->tines[i].name);
         free(config->tines[i].wdir);
         free(config->tines[i].run_cmd);
+
+        for (size_t j = 0; j<config->tines[i].nenv; j++) {
+            free(config->tines[i].env[j].key);
+            free(config->tines[i].env[j].value);
+        }
+        free(config->tines[i].env);
     }
     free(config->tines);
 
