@@ -9,6 +9,8 @@
 #include <errno.h>
 #include <signal.h>
 
+#include "cmdparse.h"
+
 int setup_ctrlsock(int *sock, const char *path) {
     *sock = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (*sock == -1) {
@@ -37,31 +39,32 @@ int setup_ctrlsock(int *sock, const char *path) {
 
 int handle_ctrlsock_cmd(char *cmd, tine_t *tines, child_process *tine_procs, size_t ntines) {
     // Command format: <tine-name> <command> [args]
-    char *tine_name = strtok(cmd, " ");
-    char *command = strtok(NULL, " ");
+    char *command = strtok(cmd, " ");
 
-    if (tine_name == NULL || command == NULL) {
+    if (command == NULL) {
         return -1;
     }
 
-    for (size_t i = 0; i<ntines; i++) {
-        if (strcmp(tines[i].name, tine_name) == 0) {
-            if (strcmp(command, "signal") == 0) {
-                char *signal = strtok(NULL, " ");
-                if (signal == NULL) {
-                    return -1;
-                }
+    if (strcmp(command, "signal") == 0) {
+        char *tine_name = strtok(NULL, " ");
+        char *signal = strtok(NULL, " ");
+        if (tine_name == NULL || signal == NULL) {
+            return -1;
+        }
 
-                int signum = atoi(signal);
-                if (signum == 0) {
-                    return -1;
-                }
+        int i = tine_index_by_name(tine_name, tines, ntines);
+        if (i == -1) {
+            return -1;
+        }
 
-                if (kill(tine_procs[i].pid, signum) == -1) {
-                    perror("kill");
-                    return -1;
-                }
-            }
+        int signum = atoi(signal);
+        if (signum == 0) {
+            return -1;
+        }
+
+        if (kill(tine_procs[i].pid, signum) == -1) {
+            perror("kill");
+            return -1;
         }
     }
 

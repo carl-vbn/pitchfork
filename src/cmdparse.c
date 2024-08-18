@@ -112,3 +112,13 @@ char *expand_tilde(const char *input) {
         return strdup(input);
     }
 }
+
+int tine_index_by_name(const char *name, tine_t *tines, size_t ntines) {
+    for (size_t i = 0; i < ntines; i++) {
+        if (strcmp(tines[i].name, name) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
