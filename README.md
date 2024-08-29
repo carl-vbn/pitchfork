@@ -6,15 +6,17 @@ This project was started out of frustration with the limitations of the `screen`
 
 pitchfork is designed to manage long-running tasks such as webservers and various microservices running on the same machine. It takes in a configuration file that dictates how each task should be run and will then make sure they keep running while allowing both humans and programs to interface with the running setup.
 
-## Planned features
+## Completed and planned features
 * [x] Run multiple child processes asynchronously
 * [x] Capture standard I/O
 * [x] Parse YAML
 * [x] Configurable command and arguments 
-* [ ] Configurable environment variables
-* [ ] Configurable working directory
+* [x] Configurable environment variables
+* [x] Configurable working directory
 * [ ] Configurable permissions
 * [ ] Configurable logging
-* [ ] Sockets to connect to a running pitchfork process
+* [x] Sockets to connect to a running pitchfork process
 * [ ] Automatic restarts
-* [ ] Pre and post commands
+* [ ] Pre and post-execution commands
+
+An example configuration file for a Game server network can be found under [pitchfork-example.yml](pitchfork-example.yml)
