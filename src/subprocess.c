@@ -7,7 +7,7 @@
 
 #include "cmdparse.h"
 
-int start_tine_proc(tine_t *tine, child_process *child_info) {
+int start_tine_proc(tine_t *tine, childproc_t *child_info) {
     int stdin_pipe[2];
     int stdout_pipe[2];
     int stderr_pipe[2];
@@ -74,7 +74,7 @@ int start_tine_proc(tine_t *tine, child_process *child_info) {
     }
 }
 
-int any_running(child_process *procs, size_t nprocs) {
+int any_running(childproc_t *procs, size_t nprocs) {
     for (size_t i = 0; i<nprocs; i++) {
         if (procs[i].running) {
             return 1;

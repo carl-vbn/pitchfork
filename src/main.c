@@ -14,8 +14,12 @@
 #include "config.h"
 #include "cmdparse.h"
 #include "ctrlsock.h"
+#include "stdiobuf.h"
 
-#define BUFSIZE 4096
+// The size of the input buffer used when reading process IO
+#define RDBUFSIZE 4096
+
+// Maximum number of simulatenously connected control socket clients
 #define MAX_CTRLSOCK_CLIENTS 5
 
 int main(int argc, char **argv) {
@@ -24,6 +28,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
+    /* Config loading */
     FILE *config_file = fopen(argv[1], "r");
     if (config_file == NULL) {
         fprintf(stderr, "%s: No such file or directory\n", argv[1]);
@@ -38,9 +43,11 @@ int main(int argc, char **argv) {
     }
     fclose(config_file);
 
-    child_process *tine_procs = malloc(config.ntines * sizeof(child_process));
+    /* Start tines */
+    childproc_t *tine_procs = malloc(config.ntines * sizeof(childproc_t));
     for (size_t i = 0; i<config.ntines; i++) {
         start_tine_proc(&config.tines[i], tine_procs+i);
+        stdiobuf_init(&tine_procs[i].stdiobuf);
     }
 
     // Setup control socket
@@ -59,11 +66,12 @@ int main(int argc, char **argv) {
     int ctrlsock_clients[MAX_CTRLSOCK_CLIENTS];
     memset(ctrlsock_clients, -1, sizeof(ctrlsock_clients));
 
+    /* IO Loop */
     while (any_running(tine_procs, config.ntines)) {
         FD_ZERO(&fdset);
 
         for (int i = 0; i<config.ntines; i++) {
-            child_process *task = tine_procs + i;
+            childproc_t *task = tine_procs + i;
             FD_SET(task->stdout_fd, &fdset);
             FD_SET(task->stderr_fd, &fdset);
 
@@ -97,14 +105,15 @@ int main(int argc, char **argv) {
         
         if (select(FD_SETSIZE, &fdset, NULL, NULL, NULL) != -1) {
             int read_bytes;
-            char buf[BUFSIZE];
+            char buf[RDBUFSIZE];
 
             for (int i = 0; i<config.ntines; i++) {
-                child_process *task = tine_procs + i;
+                childproc_t *task = tine_procs + i;
 
                 if (FD_ISSET(task->stdout_fd, &fdset)) {
                     read_bytes = read(task->stdout_fd, buf, sizeof(buf));
                     write(STDOUT_FILENO, buf, read_bytes);
+                    stdiobuf_write(&tine_procs[i].stdiobuf, buf, read_bytes);
                 }
 
                 if (FD_ISSET(task->stderr_fd, &fdset)) {
@@ -149,13 +158,20 @@ int main(int argc, char **argv) {
         }
     }
 
+    /* Clean up */
+
     if (config.ctrlsock_enabled) {
         close(ctrlsock);
         unlink(config.ctrlsock_path);
     }
 
-    delete_config(&config);
+
+    for (size_t i = 0; i<config.ntines; i++) {
+        stdiobuf_dispose(&tine_procs[i].stdiobuf);
+    }
+
     free(tine_procs);
+    delete_config(&config);
 
     return EXIT_SUCCESS;
 }

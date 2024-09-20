@@ -5,6 +5,6 @@
 #include "config.h"
 
 int setup_ctrlsock(int *sock, const char *path);
-int handle_ctrlsock_cmd(char *cmd, tine_t *tines, child_process *tine_procs, size_t ntines);
+int handle_ctrlsock_cmd(char *cmd, tine_t *tines, childproc_t *tine_procs, size_t ntines);
 
 #endif
