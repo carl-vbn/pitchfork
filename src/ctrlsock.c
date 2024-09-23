@@ -37,7 +37,7 @@ int setup_ctrlsock(int *sock, const char *path) {
     return 0;
 }
 
-int handle_ctrlsock_cmd(char *cmd, tine_t *tines, childproc_t *tine_procs, size_t ntines) {
+int handle_ctrlsock_cmd(int client_fd, char *cmd, tine_t *tines, childproc_t *tine_procs, size_t ntines) {
     // Command format: <tine-name> <command> [args]
     char *command = strtok(cmd, " ");
 
@@ -66,6 +66,28 @@ int handle_ctrlsock_cmd(char *cmd, tine_t *tines, childproc_t *tine_procs, size_
             perror("kill");
             return -1;
         }
+    } else if (strcmp(command, "stdioread") == 0) {
+        char *tine_name = strtok(NULL, " ");
+        if (tine_name == NULL) {
+            return -1;
+        }
+
+        int i = tine_index_by_name(tine_name, tines, ntines);
+        if (i == -1) {
+            return -1;
+        }
+
+        char buf[IOBUFSIZE];
+        size_t read_bytes = stdiobuf_read(&tine_procs[i].stdiobuf, buf, sizeof(buf));
+
+        if (read_bytes > 0) {
+            if (send(client_fd, buf, read_bytes, 0) == -1) {
+                perror("send");
+                return -1;
+            }
+        }
+    } else {
+        return -1;
     }
 
     return 0;

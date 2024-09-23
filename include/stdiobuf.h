@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 // The size of the buffer used to store process IO for access by control sockets
-#define IOBUFSIZE 8 //8192
+#define IOBUFSIZE 8192
 
 typedef struct stdiobuf_s {
     char *buf;

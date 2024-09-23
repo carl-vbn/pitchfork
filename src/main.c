@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
                             buf[read_bytes] = '\0';
                         }
                         printf("%sReceived command: %s%s\n", CYN, buf, CRESET);
-                        if (handle_ctrlsock_cmd(buf, config.tines, tine_procs, config.ntines) != 0) {
+                        if (handle_ctrlsock_cmd(ctrlsock_clients[j], buf, config.tines, tine_procs, config.ntines) != 0) {
                             printf("%sFailed to handle command%s\n", RED, CRESET);
                         }
                     } else if (read_bytes == 0) {
